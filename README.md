@@ -28,6 +28,8 @@ Trigger with your configured keyword (default: `s`) followed by your query.
   Search for directories only
 - **Hardware-only search**: `s <hw_keyword> pattern` (default: `hw`)  
   Live scan only on mounted media (USB drives, external HDDs, etc.)
+- **Combined search**: `s <hw_keyword> <dir_keyword> pattern`  
+  Search for directories only on mounted hardware.
 - **Raw locate search**: `s r locate-args`  
   Direct arguments to locate/plocate (e.g., `s r -i *.pdf`)
 

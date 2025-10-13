@@ -138,6 +138,15 @@ class Locator:
         
         tokens = pattern.strip().split()
         print(f"Search pattern: '{pattern}', tokens: {tokens}")
+
+        # Combined hardware and directory search
+        if len(tokens) > 2 and (
+            (tokens[0].lower() == self.hw_keyword and tokens[1].lower() in [self.dir_keyword, 'folder']) or
+            (tokens[0].lower() in [self.dir_keyword, 'folder'] and tokens[1].lower() == self.hw_keyword)
+        ):
+            search_pattern = ' '.join(tokens[2:])
+            print(f"Hardware-only directory search for: '{search_pattern}'")
+            return self._run_find(search_pattern, "directory")
         
         # Folder search mode: "dir <pattern>" or "folder <pattern>"
         if tokens[0].lower() in [self.dir_keyword, 'folder'] and len(tokens) > 1:

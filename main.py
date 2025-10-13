@@ -508,7 +508,13 @@ class KeywordQueryEventListener(EventListener):
                     
                     # Add info item showing search mode
                     mode_info = "File search"
-                    if arg.lower().startswith(f'{locator.hw_keyword} '):
+                    tokens = arg.lower().split()
+                    if len(tokens) > 2 and (
+                        (tokens[0] == locator.hw_keyword and tokens[1] in [locator.dir_keyword, 'folder']) or
+                        (tokens[0] in [locator.dir_keyword, 'folder'] and tokens[1] == locator.hw_keyword)
+                    ):
+                        mode_info = "Hardware-only directory search"
+                    elif arg.lower().startswith(f'{locator.hw_keyword} '):
                         mode_info = "Hardware-only search"
                     elif arg.lower().startswith('r '):
                         mode_info = "Raw locate search"
