@@ -472,19 +472,34 @@ class KeywordQueryEventListener(EventListener):
                         # Check if it's a directory or file for icon
                         icon = 'images/folder.png' if os.path.isdir(file_path) else 'images/ok.png'
                         
-                        # Create Open With trigger action
-                        open_with_action = ExtensionCustomAction({
-                            'type': 'open_with_trigger', 
-                            'file_path': file_path
-                        }, True)
+                        # The on_enter=OpenAction(file_path) enables drag and drop
                         
+                        # Create a menu for Alt+Enter
+                        alt_enter_menu = [
+                            ExtensionResultItem(
+                                icon='images/app.png',
+                                name='Open With...',
+                                description='Choose an application to open this file',
+                                on_enter=ExtensionCustomAction({
+                                    'type': 'open_with_trigger',
+                                    'file_path': file_path
+                                }, True)
+                            ),
+                            ExtensionResultItem(
+                                icon='images/folder.png',
+                                name='Open Folder Location',
+                                description=f'Open the folder containing {os.path.basename(file_path)}',
+                                on_enter=OpenAction(os.path.dirname(file_path))
+                            )
+                        ]
+
                         # Create the main search result item
                         items.append(ExtensionResultItem(
                             icon=icon,
                             name=display_name,
-                            description=f"{file_path} | Alt+Enter for Open With",
+                            description=f"{file_path} | Alt+Enter for more options",
                             on_enter=OpenAction(file_path),
-                            on_alt_enter=open_with_action
+                            on_alt_enter=RenderResultListAction(alt_enter_menu)
                         ))
                     
                     # Add info item showing search mode
@@ -499,7 +514,7 @@ class KeywordQueryEventListener(EventListener):
                     items.append(ExtensionResultItem(
                         icon='images/info.png',
                         name=f"Found {len(results)} results - {mode_info}",
-                        description="Enter: Open | Alt+Enter: Open With | Ctrl+Enter: Copy all",
+                        description="Enter: Open (drag enabled) | Alt+Enter: More options | Ctrl+Enter: Copy all",
                         on_enter=SetUserQueryAction('s ')
                     ))
                         
