@@ -17,6 +17,8 @@ import subprocess
 import os
 import shutil
 import glob
+from urllib.parse import urljoin
+from urllib.request import pathname2url
 
 from locator import Locator
 
@@ -475,6 +477,8 @@ class KeywordQueryEventListener(EventListener):
                         # The on_enter=OpenAction(file_path) enables drag and drop
                         
                         # Create a menu for Alt+Enter
+                        folder_path = os.path.dirname(file_path)
+                        folder_uri = urljoin('file:', pathname2url(folder_path))
                         alt_enter_menu = [
                             ExtensionResultItem(
                                 icon='images/app.png',
@@ -489,16 +493,17 @@ class KeywordQueryEventListener(EventListener):
                                 icon='images/folder.png',
                                 name='Open Folder Location',
                                 description=f'Open the folder containing {os.path.basename(file_path)}',
-                                on_enter=OpenAction(os.path.dirname(file_path))
+                                on_enter=OpenAction(folder_uri)
                             )
                         ]
 
                         # Create the main search result item
+                        file_uri = urljoin('file:', pathname2url(file_path))
                         items.append(ExtensionResultItem(
                             icon=icon,
                             name=display_name,
                             description=f"{file_path} | Alt+Enter for more options",
-                            on_enter=OpenAction(file_path),
+                            on_enter=OpenAction(file_uri),
                             on_alt_enter=RenderResultListAction(alt_enter_menu)
                         ))
                     
