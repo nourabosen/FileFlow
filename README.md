@@ -41,13 +41,15 @@ s folder projects          # Alternative folder search syntax
 ```
 
 ### Navigation & Actions:
-- **Enter**: Open file/folder with default application (Drag and Drop enabled)
+- **Enter**: Open file/folder with default application
 - **Alt+Enter**: Show a menu with two options:
   - **Open With...**: Show "Open With" menu with available applications
   - **Open Folder Location**: Open the folder containing the file
 - **Ctrl+Enter**: Copy all file paths to clipboard
 - **Clean display**: Shows filename with parent directory context
 - **Full path**: Available in description tooltip
+
+**Note on Drag and Drop:** Direct drag-and-drop functionality from the results list is not supported due to limitations in the Ulauncher API, which does not currently handle click-and-hold gestures for dragging.
 
 ### Open With Feature:
 The extension dynamically detects applications installed on your system and suggests relevant options based on file type:
@@ -156,7 +158,6 @@ Adjust settings in Ulauncher → Preferences → Extensions → FileFlow:
 
 ### Version 2.1
 - **Added "Open Folder Location"** option in the Alt+Enter menu
-- **Enabled Drag and Drop** functionality from the search results
 - **Improved Alt+Enter menu** to include both "Open With..." and "Open Folder Location"
 
 ### Version 2.0
