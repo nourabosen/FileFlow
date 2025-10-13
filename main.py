@@ -34,10 +34,16 @@ class PreferencesUpdateEventListener(EventListener):
     def on_event(self, event, extension):
         if event.id == 'limit':
             locator.set_limit(event.new_value)
+        elif event.id == 'dir_keyword':
+            locator.set_dir_keyword(event.new_value)
+        elif event.id == 'hw_keyword':
+            locator.set_hw_keyword(event.new_value)
 
 class PreferencesEventListener(EventListener):
     def on_event(self, event, extension):
         locator.set_limit(event.preferences['limit'])
+        locator.set_dir_keyword(event.preferences['dir_keyword'])
+        locator.set_hw_keyword(event.preferences['hw_keyword'])
 
 class ItemEnterEventListener(EventListener):
     def on_event(self, event, extension):
@@ -97,14 +103,14 @@ class KeywordQueryEventListener(EventListener):
             on_enter=SetUserQueryAction('s ')
         ))
         items.append(ExtensionResultItem(icon='images/folder.png',
-            name='Folder search: s dir <pattern>',
+            name=f'Folder search: s {locator.dir_keyword} <pattern>',
             description='Search for directories only',
-            on_enter=SetUserQueryAction('s dir ')
+            on_enter=SetUserQueryAction(f's {locator.dir_keyword} ')
         ))
         items.append(ExtensionResultItem(icon='images/hardware.png',
-            name='Hardware search: s hw <pattern>',
+            name=f'Hardware search: s {locator.hw_keyword} <pattern>',
             description='Search only mounted drives (/media, /mnt, /run/media)',
-            on_enter=SetUserQueryAction('s hw ')
+            on_enter=SetUserQueryAction(f's {locator.hw_keyword} ')
         ))
         items.append(ExtensionResultItem(icon='images/raw.png',
             name='Raw locate: s r <args>',
@@ -502,11 +508,11 @@ class KeywordQueryEventListener(EventListener):
                     
                     # Add info item showing search mode
                     mode_info = "File search"
-                    if arg.lower().startswith('hw '):
+                    if arg.lower().startswith(f'{locator.hw_keyword} '):
                         mode_info = "Hardware-only search"
                     elif arg.lower().startswith('r '):
                         mode_info = "Raw locate search"
-                    elif arg.lower().startswith('dir ') or arg.lower().startswith('folder '):
+                    elif arg.lower().startswith(f'{locator.dir_keyword} ') or arg.lower().startswith('folder '):
                         mode_info = "Directory search"
                     
                     items.append(ExtensionResultItem(

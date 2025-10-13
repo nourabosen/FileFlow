@@ -24,9 +24,9 @@ Trigger with your configured keyword (default: `s`) followed by your query.
 ### Search Modes:
 - **Normal search**: `s pattern`  
   Fast indexed search combined with hardware drive scan
-- **Folder search**: `s dir pattern` or `s folder pattern`  
+- **Folder search**: `s <dir_keyword> pattern` (default: `dir`)  
   Search for directories only
-- **Hardware-only search**: `s hw pattern`  
+- **Hardware-only search**: `s <hw_keyword> pattern` (default: `hw`)  
   Live scan only on mounted media (USB drives, external HDDs, etc.)
 - **Raw locate search**: `s r locate-args`  
   Direct arguments to locate/plocate (e.g., `s r -i *.pdf`)
@@ -122,6 +122,8 @@ Adjust settings in Ulauncher → Preferences → Extensions → FileFlow:
 
 - **Keyword**: Change the activation keyword (default: `s`)
 - **Limit**: Maximum number of results to display
+- **Directory search keyword**: Keyword for directory-only searches (default: `dir`)
+- **Hardware search keyword**: Keyword for hardware-only searches (default: `hw`)
 
 ## Troubleshooting
 

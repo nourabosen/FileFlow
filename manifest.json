@@ -21,6 +21,20 @@
       "name": "Maximum number of results",
       "description": "Number of results shown in Ulauncher",
       "default_value": "10"
+    },
+    {
+      "id": "dir_keyword",
+      "type": "input",
+      "name": "Directory search keyword",
+      "description": "Keyword for directory-only searches",
+      "default_value": "dir"
+    },
+    {
+      "id": "hw_keyword",
+      "type": "input",
+      "name": "Hardware search keyword",
+      "description": "Keyword for hardware-only searches",
+      "default_value": "hw"
     }
   ]
 }

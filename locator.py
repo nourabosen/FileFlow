@@ -12,7 +12,17 @@ class Locator:
         self.find_cmd = shutil.which("find")
         self.limit = 5
         self.hardware_bases = ["/run/media", "/media", "/mnt"]
+        self.dir_keyword = 'dir'
+        self.hw_keyword = 'hw'
         print(f"Initialized Locator: cmd={self.cmd}, find_cmd={self.find_cmd}")
+
+    def set_dir_keyword(self, keyword):
+        self.dir_keyword = keyword.strip() if keyword and keyword.strip() else 'dir'
+        print(f'set dir_keyword to {self.dir_keyword}')
+
+    def set_hw_keyword(self, keyword):
+        self.hw_keyword = keyword.strip() if keyword and keyword.strip() else 'hw'
+        print(f'set hw_keyword to {self.hw_keyword}')
 
     def set_limit(self, limit):
         try:
@@ -130,13 +140,13 @@ class Locator:
         print(f"Search pattern: '{pattern}', tokens: {tokens}")
         
         # Folder search mode: "dir <pattern>" or "folder <pattern>"
-        if tokens[0].lower() in ['dir', 'folder'] and len(tokens) > 1:
+        if tokens[0].lower() in [self.dir_keyword, 'folder'] and len(tokens) > 1:
             search_pattern = ' '.join(tokens[1:])
             print(f"Directory search for: '{search_pattern}'")
             return self._run_find(search_pattern, "directory")
         
         # Hardware-only mode: "hw <pattern>"
-        if tokens[0].lower() == 'hw' and len(tokens) > 1:
+        if tokens[0].lower() == self.hw_keyword and len(tokens) > 1:
             search_pattern = ' '.join(tokens[1:])
             print(f"Hardware-only search for: '{search_pattern}'")
             return self._run_find(search_pattern)
