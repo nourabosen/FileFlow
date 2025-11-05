@@ -82,12 +82,13 @@ class Locator:
         print(f"Discovered {len(out)} hardware paths: {out}")
         return out
 
-    def _run_find(self, pattern: str, search_type: str = "file") -> List[str]:
+    def _run_find(self, pattern: str, search_type: str = "file", extension: str = None) -> List[str]:
         """Run find on hardware-mounted drives - optimized version.
         
         Args:
             pattern: Search pattern
             search_type: "file" for files, "directory" for directories
+            extension: File extension to filter by
         """
         paths = self._discover_hardware_paths()
         if not paths:
@@ -106,6 +107,8 @@ class Locator:
                 print(f"Searching in: {path}")
                 # Use -maxdepth 3 to avoid deep recursion and speed up search
                 cmd = [self.find_cmd, path, "-maxdepth", "3", "-type", search_type[0], "-iname", f"*{pattern}*"]
+                if search_type == "file" and extension:
+                    cmd.extend(["-iname", f"*.{extension}"])
                 
                 # Run with timeout to prevent hanging
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
@@ -139,30 +142,43 @@ class Locator:
         tokens = pattern.strip().split()
         print(f"Search pattern: '{pattern}', tokens: {tokens}")
 
+        # Extract extension if specified, e.g., "ext:pdf"
+        extension = None
+        clean_tokens = []
+        for token in tokens:
+            if token.lower().startswith("ext:"):
+                ext = token.split(':', 1)[1]
+                if ext:
+                    extension = ext
+            else:
+                clean_tokens.append(token)
+        
+        search_pattern = ' '.join(clean_tokens)
+        
         # Combined hardware and directory search
-        if len(tokens) > 2 and (
-            (tokens[0].lower() == self.hw_keyword and tokens[1].lower() in [self.dir_keyword, 'folder']) or
-            (tokens[0].lower() in [self.dir_keyword, 'folder'] and tokens[1].lower() == self.hw_keyword)
+        if len(clean_tokens) > 2 and (
+            (clean_tokens[0].lower() == self.hw_keyword and clean_tokens[1].lower() in [self.dir_keyword, 'folder']) or
+            (clean_tokens[0].lower() in [self.dir_keyword, 'folder'] and clean_tokens[1].lower() == self.hw_keyword)
         ):
-            search_pattern = ' '.join(tokens[2:])
+            search_pattern = ' '.join(clean_tokens[2:])
             print(f"Hardware-only directory search for: '{search_pattern}'")
             return self._run_find(search_pattern, "directory")
         
         # Folder search mode: "dir <pattern>" or "folder <pattern>"
-        if tokens[0].lower() in [self.dir_keyword, 'folder'] and len(tokens) > 1:
-            search_pattern = ' '.join(tokens[1:])
+        if clean_tokens and clean_tokens[0].lower() in [self.dir_keyword, 'folder'] and len(clean_tokens) > 1:
+            search_pattern = ' '.join(clean_tokens[1:])
             print(f"Directory search for: '{search_pattern}'")
             return self._run_find(search_pattern, "directory")
         
         # Hardware-only mode: "hw <pattern>"
-        if tokens[0].lower() == self.hw_keyword and len(tokens) > 1:
-            search_pattern = ' '.join(tokens[1:])
+        if clean_tokens and clean_tokens[0].lower() == self.hw_keyword and len(clean_tokens) > 1:
+            search_pattern = ' '.join(clean_tokens[1:])
             print(f"Hardware-only search for: '{search_pattern}'")
-            return self._run_find(search_pattern)
+            return self._run_find(search_pattern, "file", extension)
         
         # Raw mode: "r <args>"
-        if tokens[0].lower() == 'r' and len(tokens) > 1:
-            raw_args = tokens[1:]
+        if clean_tokens and clean_tokens[0].lower() == 'r' and len(clean_tokens) > 1:
+            raw_args = clean_tokens[1:]
             cmd = [self.cmd] + raw_args
             print(f'Executing raw command: {" ".join(cmd)}')
             try:
@@ -172,16 +188,13 @@ class Locator:
                 raise RuntimeError(f"Command failed with exit status {e.returncode}: {e.output}")
         
         # Normal mode: combined search
-        search_pattern = pattern
         
-        # Check if the search pattern likely contains a file extension
-        if '.' in search_pattern.split('/')[-1]:
-            # Use regex for exact filename match
-            # This will match files like 'kindle.pdf' but not 'kindle_new.pdf'
-            locate_cmd = [self.cmd, '-i', '-l', str(self.limit), '--regex', f"{search_pattern}$"]
-        else:
-            # Original behavior: find any file containing the pattern
-            locate_cmd = [self.cmd, '-i', '-l', str(self.limit), search_pattern]
+        # Build regex for locate
+        regex_pattern = f"{search_pattern}"
+        if extension:
+            regex_pattern += f".*\\.{extension}$"
+        
+        locate_cmd = [self.cmd, '-i', '-l', str(self.limit), '--regex', regex_pattern]
             
         print(f'Executing locate command: {" ".join(locate_cmd)}')
         
@@ -194,7 +207,8 @@ class Locator:
             # Fallback for regex errors on some `locate` versions
             if 'regex' in str(e).lower():
                 print("Regex search failed, falling back to normal search")
-                locate_cmd = [self.cmd, '-i', '-l', str(self.limit), search_pattern]
+                fallback_pattern = f"*{search_pattern}*.{extension}" if extension else f"*{search_pattern}*"
+                locate_cmd = [self.cmd, '-i', '-l', str(self.limit), '-b', fallback_pattern]
                 try:
                     locate_output = subprocess.check_output(locate_cmd, stderr=subprocess.STDOUT, text=True, timeout=5)
                     locate_results = [line for line in locate_output.splitlines() if line.strip()]
@@ -211,7 +225,7 @@ class Locator:
         # Always run hardware search but only if we have a pattern
         hardware_results = []
         if search_pattern.strip():
-            hardware_results = self._run_find(search_pattern)
+            hardware_results = self._run_find(search_pattern, "file", extension)
             print(f"Hardware search found {len(hardware_results)} results")
 
         # Combine results - remove duplicates

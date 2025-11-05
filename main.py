@@ -117,6 +117,11 @@ class KeywordQueryEventListener(EventListener):
             description='Raw plocate/locate arguments',
             on_enter=SetUserQueryAction('s r ')
         ))
+        items.append(ExtensionResultItem(icon='images/info.png',
+            name='Filter by extension: s <pattern> ext:<extension>',
+            description='Example: s my_document ext:pdf',
+            on_enter=SetUserQueryAction('s ext:')
+        ))
         return items
     
     def __format_display_name(self, file_path):
