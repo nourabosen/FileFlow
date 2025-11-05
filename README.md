@@ -3,7 +3,7 @@ Fast file and folder search for Ulauncher using `plocate`/`locate`, with support
 
 ## Features
 - **Fast Indexed Search:** Uses `plocate` or `locate` for instant results.
-- **Exact Match on File Extension:** If you search for a pattern that includes a file extension (e.g., `report.pdf`), the search will look for exact matches, improving accuracy.
+- **Exact Match on File Extension:** If you search for a file extension (e.g., `report.pdf`), the search will look for exact filename matches, improving accuracy.
 - **Hardware Drive Scanning:** Automatically finds files on mounted media (`/run/media`, `/media`, `/mnt`).
 - **Dynamic "Open With" Menu:** Intelligently suggests installed applications based on file type.
 - **Configurable Search Modes:**
