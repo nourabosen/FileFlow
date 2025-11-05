@@ -5,6 +5,7 @@ import sys
 import shutil
 import glob
 from typing import List
+import re
 
 class Locator:
     def __init__(self):
@@ -190,9 +191,9 @@ class Locator:
         # Normal mode: combined search
         
         # Build regex for locate
-        regex_pattern = f"{search_pattern}"
+        regex_pattern = re.escape(search_pattern)
         if extension:
-            regex_pattern += f".*\\.{extension}$"
+            regex_pattern += f".*\\.{re.escape(extension)}$"
         
         locate_cmd = [self.cmd, '-i', '-l', str(self.limit), '--regex', regex_pattern]
             
@@ -207,11 +208,15 @@ class Locator:
             # Fallback for regex errors on some `locate` versions
             if 'regex' in str(e).lower():
                 print("Regex search failed, falling back to normal search")
-                fallback_pattern = f"*{search_pattern}*.{extension}" if extension else f"*{search_pattern}*"
-                locate_cmd = [self.cmd, '-i', '-l', str(self.limit), '-b', fallback_pattern]
+                # Increase limit to get more results for post-filtering
+                locate_cmd = [self.cmd, '-i', '-l', str(self.limit * 5), search_pattern]
                 try:
                     locate_output = subprocess.check_output(locate_cmd, stderr=subprocess.STDOUT, text=True, timeout=5)
-                    locate_results = [line for line in locate_output.splitlines() if line.strip()]
+                    lines = [line for line in locate_output.splitlines() if line.strip()]
+                    if extension:
+                        locate_results = [line for line in lines if line.lower().endswith(f".{extension}")][:self.limit]
+                    else:
+                        locate_results = lines[:self.limit]
                 except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as fallback_e:
                     print(f"Fallback locate command failed: {fallback_e}")
                     locate_results = []
