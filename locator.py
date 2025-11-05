@@ -106,8 +106,8 @@ class Locator:
         for path in paths:
             try:
                 print(f"Searching in: {path}")
-                # Use -maxdepth 3 to avoid deep recursion and speed up search
-                cmd = [self.find_cmd, path, "-maxdepth", "3", "-type", search_type[0], "-iname", f"*{pattern}*"]
+                # Use -maxdepth 7 to go deeper into the directory structure
+                cmd = [self.find_cmd, path, "-maxdepth", "7", "-type", search_type[0], "-iname", f"*{pattern}*"]
                 if search_type == "file" and extension:
                     cmd.extend(["-iname", f"*.{extension}"])
                 
