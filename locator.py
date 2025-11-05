@@ -173,7 +173,16 @@ class Locator:
         
         # Normal mode: combined search
         search_pattern = pattern
-        locate_cmd = [self.cmd, '-i', '-l', str(self.limit), search_pattern]
+        
+        # Check if the search pattern likely contains a file extension
+        if '.' in search_pattern.split('/')[-1]:
+            # Use regex for exact filename match
+            # This will match files like 'kindle.pdf' but not 'kindle_new.pdf'
+            locate_cmd = [self.cmd, '-i', '-l', str(self.limit), '--regex', f"{search_pattern}$"]
+        else:
+            # Original behavior: find any file containing the pattern
+            locate_cmd = [self.cmd, '-i', '-l', str(self.limit), search_pattern]
+            
         print(f'Executing locate command: {" ".join(locate_cmd)}')
         
         locate_results = []
@@ -182,8 +191,19 @@ class Locator:
             locate_results = [line for line in locate_output.splitlines() if line.strip()]
             print(f"Locate found {len(locate_results)} results")
         except subprocess.CalledProcessError as e:
-            print(f"Locate command failed: {e}")
-            locate_results = []
+            # Fallback for regex errors on some `locate` versions
+            if 'regex' in str(e).lower():
+                print("Regex search failed, falling back to normal search")
+                locate_cmd = [self.cmd, '-i', '-l', str(self.limit), search_pattern]
+                try:
+                    locate_output = subprocess.check_output(locate_cmd, stderr=subprocess.STDOUT, text=True, timeout=5)
+                    locate_results = [line for line in locate_output.splitlines() if line.strip()]
+                except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as fallback_e:
+                    print(f"Fallback locate command failed: {fallback_e}")
+                    locate_results = []
+            else:
+                print(f"Locate command failed: {e}")
+                locate_results = []
         except subprocess.TimeoutExpired:
             print("Locate command timed out")
             locate_results = []
